@@ -25,7 +25,7 @@ initial_craft_mass = mission.spacecraft_mass + initial_fuel_mass
 craft_mass = (initial_craft_mass - fuel_mass_loss) / M_sun
 M_i = system.masses
 G = const.G_sol # gravitational constant [AU^3/yr^2/m_sun]
-M_star = system.star_mass*0   # [m_sun]
+M_star = system.star_mass   # [m_sun]
 m = craft_mass
 
 r_all = np.load('positions_all_planets.npy')  # array containing all planet positions
@@ -68,7 +68,7 @@ def trajectory(inital_time, initial_position, initial_velocity, simulation_time,
         r_craft[:,i+1] = r_craft[:,i] + v_craft[:,i+1]*dt
 
     return t, v_craft, r_craft
-# 
+#
 # test_pos = np.array([20, -10])
 # test_vel = np.array([-10,10])
 # t, v_craft, r_craft = trajectory(0,test_pos, test_vel, 15, 0.001)
