@@ -29,6 +29,7 @@ M_star = system.star_mass   # [m_sun]
 m = craft_mass
 
 r_all = np.load('positions_all_planets.npy')  # array containing all planet positions
+v_all = np.load('velocity_all_planets.npy') # array containing all velocities
 t_all = np.load('time_planets.npy') # array containing the time for planet orbits
 
 def trajectory(inital_time, initial_position, initial_velocity, simulation_time, time_step_length):
@@ -40,11 +41,15 @@ def trajectory(inital_time, initial_position, initial_velocity, simulation_time,
     inter_func = interpolate.interp1d(t_all, r_all, axis=-1)
     r_i = inter_func(t)
 
+    inter_func_vel = interpolate.interp1d(t_all, v_all, axis=-1)
+    v_i = inter_func_vel(t)
+    initial_planet_velocity = v_i[:,0,0]
+
     r_craft = np.zeros((2,time_steps))
     v_craft = np.zeros((2,time_steps))
 
     r_craft[:,0] = initial_position
-    v_craft[:,0] = initial_velocity
+    v_craft[:,0] = initial_velocity + initial_planet_velocity
 
     for i in range(time_steps-1):
         r_vec = r_craft[:,i]
