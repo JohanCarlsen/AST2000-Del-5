@@ -8,9 +8,12 @@ import ast2000tools.constants as const
 import ast2000tools.utils as utils
 from ast2000tools.solar_system import SolarSystem
 from ast2000tools.space_mission import SpaceMission
+from ast2000tools.shortcuts import SpaceMissionShortcuts
 from numba import njit
 from scipy import interpolate
 from challenge_A import trajectory
+from challenge_C_part_4 import v_rad, phi_to_xy_transformation, v_rad_rel_home_star
+from challenge_D_part_4 import spacecraft_position
 
 seed = utils.get_seed('antonabr')
 system = SolarSystem(seed)
@@ -46,25 +49,55 @@ min_dist_time = min_dist_index * dt
 0.39681963099402645
 '''
 
+''' shortcut from part 1'''
+code_engine = 50557
+code_launch = 25206
+code_escape_trajectory = 14143
+shortcut = SpaceMissionShortcuts(mission, [code_engine, code_launch, code_escape_trajectory])
+
+number_density = 1e5 / (1e-6)**3
+temperature = 5e3
+hole_area = 0.25 * 1e-6**2
+
+thrust_pr_box, mass_loss_pr_box = shortcut.compute_engine_performance(number_density, temperature, hole_area)
+
+N_box = 2e30
+initial_fuel_mass = 1e20 # kg
+est_launch_dur = 500 # s
+thrust = thrust_pr_box * N_box
+mass_loss_rate = mass_loss_pr_box * N_box
+r_p_vec = r_all[:,0,min_dist_index]
+r_p_unit = r_p_vec / np.linalg.norm(r_p_vec)
+radius_vec = home_planet_R * r_p_unit
+r_0 = r_p_vec + radius_vec
+time_of_launch = min_dist_time
+
+mission.set_launch_parameters(thrust, mass_loss_rate, initial_fuel_mass, est_launch_dur, r_0, time_of_launch)
+mission.launch_rocket()
+shortcut.get_launch_results()
+
+height_above_suface = 1e7 # m
+direction = 90 # degrees wrt. x-axis
+fuel_left = 1e4 # kg
+
+shortcut.place_spacecraft_on_escape_trajectory(thrust, mass_loss_rate, time_of_launch, height_above_suface, direction, fuel_left)
+''' shortcut end '''
+
+
+delta_lambda_1, delta_lambda_2 = mission.measure_star_doppler_shifts()
+craft_velocity = v_rad_rel_home_star(delta_lambda_1, delta_lambda_2)
+craft_position = spacecraft_position(mission.measure_distances(), r_all[:,:,min_dist_index])
+
+t, v_craft, r_craft = trajectory(min_dist_time, craft_position, craft_velocity, 1/4, 0.001)
+print(craft_velocity, craft_position)
+plt.plot(r_craft[0,:], r_craft[1,:])
+
 plt.plot(r_planets[0,0,:], r_planets[1,0,:])
 plt.plot(r_planets[0,1,:], r_planets[1,1,:])
 plt.plot(r_planets[0,2,:], r_planets[1,2,:])
+
 plt.plot(r_planets[0,0,min_dist_index], r_planets[1,0,min_dist_index], 'ro')
 plt.plot(r_planets[0,1,min_dist_index], r_planets[1,1,min_dist_index], 'ro')
 plt.plot(r_planets[0,2,min_dist_index], r_planets[1,2,min_dist_index], 'ro')
-#
-# plt.show()
 
-home_planet_vec = r_planets[:,0,min_dist_index]
-unit_r = home_planet_vec / np.linalg.norm(home_planet_vec)
-
-t_launch = min_dist_time # [yr]
-position_after_launch = np.array([[1.85891332, 1.17687184e-4]])
-r_0 = home_planet_vec + (np.array([home_planet_R, 0]) * unit_r)
-v_after_launch = np.array([0, 6.6])
-
-t, v_craft, r_craft = trajectory(t_launch, r_0, v_after_launch, 1.55, 0.001)
-print(r_craft[:,0])
-# plt.plot(r_craft[0,:], r_craft[1,:])
-# plt.axis('equal')
-# plt.show()
+plt.show()
