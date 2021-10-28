@@ -11,14 +11,16 @@ time = np.load('time_planets.npy')
 
 plt.subplots_adjust(bottom=0.25)
 
-l0, = plt.plot(r_all[0,0,:], r_all[1,0,:], lw=2)
-l1, = plt.plot(r_all[0,1,:], r_all[1,1,:], lw=2)
-l2, = plt.plot(r_all[0,2,:], r_all[1,2,:], lw=2)
-l3, = plt.plot(r_all[0,3,:], r_all[1,3,:], lw=2)
-l4, = plt.plot(r_all[0,4,:], r_all[1,4,:], lw=2)
-l5, = plt.plot(r_all[0,5,:], r_all[1,5,:], lw=2)
-l6, = plt.plot(r_all[0,6,:], r_all[1,6,:], lw=2)
-l7, = plt.plot(r_all[0,7,:], r_all[1,7,:], lw=2)
+N = 1000
+
+l0, = plt.plot(r_all[0,0,::N], r_all[1,0,::N], lw=2)
+l1, = plt.plot(r_all[0,1,::N], r_all[1,1,::N], lw=2)
+l2, = plt.plot(r_all[0,2,::N], r_all[1,2,::N], lw=2)
+l3, = plt.plot(r_all[0,3,::N], r_all[1,3,::N], lw=2)
+l4, = plt.plot(r_all[0,4,::N], r_all[1,4,::N], lw=2)
+l5, = plt.plot(r_all[0,5,::N], r_all[1,5,::N], lw=2)
+l6, = plt.plot(r_all[0,6,::N], r_all[1,6,::N], lw=2)
+l7, = plt.plot(r_all[0,7,::N], r_all[1,7,::N], lw=2)
 
 p0, = ax.plot(r_all[0,0,0], r_all[1,0,0], color='blue', marker='o', markersize=6)
 p1, = ax.plot(r_all[0,1,0], r_all[1,1,0], color='orange', marker='o', markersize=6)
@@ -34,7 +36,7 @@ p7, = ax.plot(r_all[0,7,0], r_all[1,7,0], color='gray', marker='o', markersize=6
 axcolor = 'lightgoldenrodyellow'
 axtime = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)
 
-stime = Slider(axtime, 'Time', 0, 40)
+stime = Slider(axtime, 'Time [yr]', 0, 40)
 
 def update(val):
     T = stime.val
