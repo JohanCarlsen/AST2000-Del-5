@@ -86,18 +86,20 @@ shortcut.place_spacecraft_on_escape_trajectory(thrust, mass_loss_rate, time_of_l
 
 delta_lambda_1, delta_lambda_2 = mission.measure_star_doppler_shifts()
 craft_velocity = v_rad_rel_home_star(delta_lambda_1, delta_lambda_2)
-craft_position = spacecraft_position(mission.measure_distances(), r_all[:,:,min_dist_index])
+dist = mission.measure_distances()
+craft_position = spacecraft_position(dist, r_all[:,:,min_dist_index])
 
-t, v_craft, r_craft = trajectory(min_dist_time, craft_position, craft_velocity, 1/4, 0.001)
+if __name__ == '__main__':
+    t, v_craft, r_craft = trajectory(min_dist_time, craft_position, craft_velocity, 1/4, 0.001)
 
-plt.plot(r_planets[0,0,:], r_planets[1,0,:])
-plt.plot(r_planets[0,1,:], r_planets[1,1,:])
-plt.plot(r_planets[0,2,:], r_planets[1,2,:])
+    plt.plot(r_planets[0,0,:], r_planets[1,0,:])
+    plt.plot(r_planets[0,1,:], r_planets[1,1,:])
+    plt.plot(r_planets[0,2,:], r_planets[1,2,:])
 
-plt.plot(r_planets[0,0,min_dist_index], r_planets[1,0,min_dist_index], 'ro')
-plt.plot(r_planets[0,1,min_dist_index], r_planets[1,1,min_dist_index], 'ro')
-plt.plot(r_planets[0,2,min_dist_index], r_planets[1,2,min_dist_index], 'ro')
+    plt.plot(r_planets[0,0,min_dist_index], r_planets[1,0,min_dist_index], 'ro')
+    plt.plot(r_planets[0,1,min_dist_index], r_planets[1,1,min_dist_index], 'ro')
+    plt.plot(r_planets[0,2,min_dist_index], r_planets[1,2,min_dist_index], 'ro')
 
-plt.plot(r_craft[0,:], r_craft[1,:])
+    plt.plot(r_craft[0,:], r_craft[1,:])
 
-plt.show()
+    plt.show()
