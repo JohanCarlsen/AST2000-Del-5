@@ -37,6 +37,7 @@ m = craft_mass
 
 from_km_to_AU = 1 / AU
 planet_radius = system.radii[0] * from_km_to_AU
+planet6_radius = system.radii[6] * from_km_to_AU
 
 # Kun en animasjonsfaktor som gjør det glattere
 N = 1000
@@ -60,18 +61,17 @@ p6, = ax.plot(r_all[0,6,0], r_all[1,6,0], color='violet', marker='o', markersize
 # p7, = ax.plot(r_all[0,7,0], r_all[1,7,0], color='gray', marker='o', markersize=10)
 craft, = ax.plot([],[], color='r', marker='o')
 
-
-T0 = 1.53           # Rundt 1.5 og 1.55 et sted ser morsomt ut (16.12-ish er også interessant) (1.53)
+T0 = 1.528           # Rundt 1.5 og 1.55 et sted ser morsomt ut (16.12-ish er også interessant) (1.528)
 dt = time[1] - time[0]
 index0 = int(T0 / dt)
 
 craft_position = spacecraft_position(dist, r_all[:,:,index0])
-t, v_craft, r_craft = trajectory(time[index0], craft_position, craft_velocity, 1.1, 0.001)
-print(time[index0])
+t, v_craft, r_craft = trajectory(time[index0], craft_position, craft_velocity, 1.2, 0.001)
+# print(time[index0])
 ax.plot(r_craft[0], r_craft[1], 'r')
 index_ratio = len(time)*(t[-1] - time[index0]) / (time[-1]*len(t))     # Deler på time[-1] fordi r_all er pr. 40 år, og time[-1] = 40, Hvordan gå fra indeks mellom rakett og planet
 # print(index_ratio)
-print('\ndistance from sun [AU]:\n-----------------------')
+print('\ndistances [AU]:\n-----------------------')
 def update(index):
     indexp = int(index_ratio*index)
     p0.set_data(r_all[0, 0, index0 + indexp], r_all[1, 0, index0 + indexp])
@@ -83,9 +83,15 @@ def update(index):
     p6.set_data(r_all[0, 6, index0 + indexp], r_all[1, 6, index0 + indexp])
     # p7.set_data(r_all[0, 7, index], r_all[1, 7, index])
     craft.set_data(r_craft[0, index], r_craft[1, index])
-    timelabel = ax.text(2, 3.2, f't={t[index]-T0:.2f}yr', fontsize=16, weight='bold')
+    timelabel = ax.text(2, 3.2, f't={t[index] - time[index0]:.2f}yr', fontsize=16, weight='bold')
+    lenp = np.sqrt(r_all[0, 6, index0 + indexp]**2 + r_all[1, 6, index0 + indexp]**2)
+    lenr = np.sqrt(r_craft[0, index]**2 + r_craft[1, index]**2)
+    if abs(lenr - lenp) <= 8e-3:        # 8e-3 AU er ca. Kármánlinjen 
+        print(f'planet pos: {r_all[0, 6, index0 + indexp], r_all[1, 6, index0 + indexp]}, craft pos: {r_craft[0, index], r_craft[1, index]}')
+        print(f'dist. diff: {abs(lenr - lenp)} at time {t[index] - time[index0]}')
+    if lenr <= 1:
+        print(f'{lenr} from the star')
 
-    print(f'{np.sqrt(r_craft[0, index]**2 + r_craft[1, index]**2)}')
     return p0, p1, p6, craft, timelabel
 
 ani = FuncAnimation(fig, update, frames=range(0, len(time), 5), interval=10, blit=True)
