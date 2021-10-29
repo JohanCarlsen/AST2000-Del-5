@@ -39,6 +39,7 @@ planet_radius = system.radii[0] * from_km_to_AU
 
 plt.subplots_adjust(bottom=0.25)
 
+# Kun en animasjonsfaktor som gjør det glattere
 N = 1000
 
 l0, = plt.plot(r_all[0,0,::N], r_all[1,0,::N], lw=2, color='royalblue')
@@ -61,14 +62,14 @@ p6, = ax.plot(r_all[0,6,0], r_all[1,6,0], color='violet', marker='o', markersize
 craft, = ax.plot([],[], color='r', marker='o')
 
 
-T0 = 1.54           # Rundt 1.53 og 1.55 et sted ser morsomt ut (16.15)
+T0 = 16.12           # Rundt 1.5 og 1.55 et sted ser morsomt ut (16.12-ish er også interessant)
 dt = time[1] - time[0]
 index0 = int(T0 / dt)
 
 craft_position = spacecraft_position(dist, r_all[:,:,index0])
-t, v_craft, r_craft = trajectory(time[index0], craft_position, craft_velocity, 1.1, 0.001)
+t, v_craft, r_craft = trajectory(time[index0], craft_position, craft_velocity, 0.55, 0.001)
 ax.plot(r_craft[0], r_craft[1], 'r')
-index_ratio = len(time) / (time[-1]*len(t))     # Deler på time[-1] fordi r_all er pr. 40 år, og time[-1] = 40
+index_ratio = len(time)*(t[-1] - T0) / (time[-1]*len(t))     # Deler på time[-1] fordi r_all er pr. 40 år, og time[-1] = 40, Hvordan gå fra indeks mellom rakett og planet
 # print(index_ratio)
 print('\ndistance from sun [AU]:\n-----------------------')
 def update(index):
