@@ -12,6 +12,7 @@ from scipy import interpolate
 fig = plt.figure()
 ax = fig.add_subplot()
 ax.axis('off')
+# plt.xkcd()
 
 r_all = np.load('positions_all_planets.npy')
 v_all = np.load('velocity_all_planets.npy')
