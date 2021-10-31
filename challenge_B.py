@@ -33,7 +33,7 @@ t_all = np.load('time_planets.npy')
 P_planet_index = np.logical_and(t_all >= P-1e-4, t_all <= P+1e-4)
 index_P = np.where(P_planet_index == True)[0][1]
 
-dt = t_all[1]
+dt = t_all[1] - t_all[0]
 
 r_planets = np.zeros((2,3,index_P))
 r_planets[:,0,:] = r_all[:,0,:index_P]
@@ -66,11 +66,13 @@ initial_fuel_mass = 1e20 # kg
 est_launch_dur = 500 # s
 thrust = thrust_pr_box * N_box
 mass_loss_rate = mass_loss_pr_box * N_box
-r_p_vec = r_all[:,0,min_dist_index]
+
+time_of_launch = 0.39681963099402645
+launch_index = int(np.ceil(time_of_launch/dt))
+r_p_vec = r_all[:,0,launch_index]
 r_p_unit = r_p_vec / np.linalg.norm(r_p_vec)
 radius_vec = home_planet_R * r_p_unit
 r_0 = r_p_vec + radius_vec
-time_of_launch = min_dist_time
 
 mission.set_launch_parameters(thrust, mass_loss_rate, initial_fuel_mass, est_launch_dur, r_0, time_of_launch)
 mission.launch_rocket()
@@ -87,18 +89,23 @@ shortcut.place_spacecraft_on_escape_trajectory(thrust, mass_loss_rate, time_of_l
 delta_lambda_1, delta_lambda_2 = mission.measure_star_doppler_shifts()
 craft_velocity = v_rad_rel_home_star(delta_lambda_1, delta_lambda_2)
 dist = mission.measure_distances()
-craft_position = spacecraft_position(dist, r_all[:,:,min_dist_index])
+craft_position = spacecraft_position(dist, r_all[:,:,launch_index])
+# mission.verify_manual_orientation(craft_position, craft_velocity, 0)
 
 if __name__ == '__main__':
-    t, v_craft, r_craft = trajectory(min_dist_time, craft_position, craft_velocity, 1/4, 0.001)
+    t, v_craft, r_craft, r_i = trajectory(time_of_launch, craft_position, craft_velocity, 1, 0.001)
 
-    plt.plot(r_planets[0,0,:], r_planets[1,0,:])
-    plt.plot(r_planets[0,1,:], r_planets[1,1,:])
-    plt.plot(r_planets[0,2,:], r_planets[1,2,:])
+    plt.plot(r_i[0,0,:], r_i[1,0,:])
+    plt.plot(r_i[0,1,:], r_i[1,1,:])
+    plt.plot(r_i[0,2,:], r_i[1,2,:])
 
-    plt.plot(r_planets[0,0,min_dist_index], r_planets[1,0,min_dist_index], 'ro')
-    plt.plot(r_planets[0,1,min_dist_index], r_planets[1,1,min_dist_index], 'ro')
-    plt.plot(r_planets[0,2,min_dist_index], r_planets[1,2,min_dist_index], 'ro')
+    plt.plot(r_i[0,0,0], r_i[1,0,0], 'ro')
+    plt.plot(r_i[0,1,0], r_i[1,1,0], 'bo')
+    plt.plot(r_i[0,2,0], r_i[1,2,0], 'go')
+    plt.plot(r_i[0,0,-1], r_i[1,0,-1], 'ro')
+    plt.plot(r_i[0,1,-1], r_i[1,1,-1], 'bo')
+    plt.plot(r_i[0,2,-1], r_i[1,2,-1], 'go')
+    plt.plot([0,0], [0,0], 'ko')
 
     plt.plot(r_craft[0,:], r_craft[1,:])
 

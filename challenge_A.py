@@ -72,11 +72,11 @@ def trajectory(inital_time, initial_position, initial_velocity, simulation_time,
         v_craft[:,i+1] = v_craft[:,i] + a*dt
         r_craft[:,i+1] = r_craft[:,i] + v_craft[:,i+1]*dt
 
-    return t, v_craft, r_craft
+    return t, v_craft, r_craft, r_i
 #
 test_pos = np.array([20, -10])
 test_vel = np.array([-10,10])
-t, v_craft, r_craft = trajectory(0,test_pos, test_vel, 15, 0.001)
+t, v_craft, r_craft, r_i = trajectory(0,test_pos, test_vel, 15, 0.001)
 
 # plt.subplot(311)
 # plt.plot(t, r_craft.T)
