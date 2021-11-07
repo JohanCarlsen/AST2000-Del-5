@@ -66,7 +66,7 @@ dt = time[1] - time[0]
 index0 = int(T0 / dt)
 
 craft_position = spacecraft_position(dist, r_all[:,:,index0])
-t, v_craft, r_craft = trajectory(time[index0], craft_position, craft_velocity, 1.3, 0.001)
+t, v_craft, r_craft, r_i = trajectory(time[index0], craft_position, craft_velocity, 1.3, 0.001)
 # print(time[index0])
 ax.plot(r_craft[0], r_craft[1], 'r')
 index_ratio = len(time)*(t[-1] - time[index0]) / (time[-1]*len(t))     # Deler på time[-1] fordi r_all er pr. 40 år, og time[-1] = 40, Hvordan gå fra indeks mellom rakett og planet
