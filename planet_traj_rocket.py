@@ -73,7 +73,7 @@ def update(val):
     # print(index)
     craft_position = spacecraft_position(dist, r_all[:,:,index])
     t, v_craft, r_craft = trajectory(time[index], craft_position, craft_velocity, 1.1, 0.001)
-    index_ratio = len(time)*(t[-1] - T) / (time[-1]*len(t))         # Hvordan gå fra indeks mellom rakett og planet 
+    index_ratio = len(time)*(t[-1] - T) / (time[-1]*len(t))         # Hvordan gå fra indeks mellom rakett og planet
     last_index_rocket = len(t) - 1
     indexp = int(last_index_rocket*index_ratio)
 

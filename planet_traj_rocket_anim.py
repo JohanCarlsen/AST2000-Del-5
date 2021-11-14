@@ -8,6 +8,7 @@ from ast2000tools.solar_system import SolarSystem
 from ast2000tools.space_mission import SpaceMission
 from numba import njit
 from scipy import interpolate
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 fig = plt.figure()
 ax = fig.add_subplot()
@@ -17,6 +18,15 @@ ax.axis('off')
 r_all = np.load('positions_all_planets.npy')
 v_all = np.load('velocity_all_planets.npy')
 time = np.load('time_planets.npy')
+
+rocket_img = plt.imread('rocket.jpg')
+planet_1_img = plt.imread('planet_1.png')
+planet_2_img = plt.imread('planet_2.png')
+planet_3_img = plt.imread('planet_3.png')
+image_box_rocket = OffsetImage(rocket_img, zoom=0.07)
+image_box_planet_1 = OffsetImage(planet_1_img, zoom=0.1)
+image_box_planet_2 = OffsetImage(planet_2_img, zoom=0.15)
+image_box_planet_3 = OffsetImage(planet_3_img, zoom=0.08)
 
 seed = utils.get_seed('antonabr')
 system = SolarSystem(seed)
@@ -31,6 +41,7 @@ fuel_mass_loss = 9.203758666898709e19   # kg
 initial_craft_mass = mission.spacecraft_mass + initial_fuel_mass
 craft_mass = (initial_craft_mass - fuel_mass_loss) / M_sun
 M_i = system.masses
+print(system.radii[6])
 G = const.G_sol # gravitational constant [AU^3/yr^2/m_sun]
 M_star = system.star_mass   # [m_sun]
 m = craft_mass
@@ -59,20 +70,22 @@ p1, = ax.plot(r_all[0,1,0], r_all[1,1,0], color='darkorange', marker='o', marker
 # p5, = ax.plot(r_all[0,5,0], r_all[1,5,0], color='brown', marker='o', markersize=6)
 p6, = ax.plot(r_all[0,6,0], r_all[1,6,0], color='violet', marker='o', markersize=10)
 # p7, = ax.plot(r_all[0,7,0], r_all[1,7,0], color='gray', marker='o', markersize=10)
-craft, = ax.plot([],[], color='r', marker='o')
+craft, = ax.plot([],[], color='r', marker='o', markersize=8)
 
-T0 = 1.525           # Rundt 1.5 og 1.55 et sted ser morsomt ut (16.12-ish er også interessant) (1.52)
+T0 = 1.5259           # Rundt 1.5 og 1.55 et sted ser morsomt ut (16.12-ish er også interessant) (1.5259)
 dt = time[1] - time[0]
 index0 = int(T0 / dt)
 
 craft_position = spacecraft_position(dist, r_all[:,:,index0])
-t, v_craft, r_craft = trajectory(time[index0], craft_position, craft_velocity, 1.3, 0.001)
+t, v_craft, r_craft, ri = trajectory(time[index0], craft_position, craft_velocity, 1.4, 0.003)
 # print(time[index0])
 ax.plot(r_craft[0], r_craft[1], 'r')
 index_ratio = len(time)*(t[-1] - time[index0]) / (time[-1]*len(t))     # Deler på time[-1] fordi r_all er pr. 40 år, og time[-1] = 40, Hvordan gå fra indeks mellom rakett og planet
 # print(index_ratio)
 print('\ndistances [AU]:\n-----------------------')
 def update(index):
+    if index == 0:
+        input()         # Dette er kun for å gi meg tid til å ta opptak av animasjonen
     indexp = int(index_ratio*index)
     p0.set_data(r_all[0, 0, index0 + indexp], r_all[1, 0, index0 + indexp])
     p1.set_data(r_all[0, 1, index0 + indexp], r_all[1, 1, index0 + indexp])
@@ -84,16 +97,40 @@ def update(index):
     # p7.set_data(r_all[0, 7, index], r_all[1, 7, index])
     craft.set_data(r_craft[0, index], r_craft[1, index])
     timelabel = ax.text(2, 3.2, f't={t[index] - time[index0]:.2f}yr', fontsize=16, weight='bold')
-    lenp = np.sqrt(r_all[0, 6, index0 + indexp]**2 + r_all[1, 6, index0 + indexp]**2)
+    diff_vec = r_all[:, 6, index0 + indexp] - r_craft[:, index]
+    diff_norm = np.linalg.norm(diff_vec)
     lenr = np.sqrt(r_craft[0, index]**2 + r_craft[1, index]**2)
-    if abs(lenr - lenp) <= 7.3e-4:        # 7e-4 AU er ca. Kármánlinjen
-        print(f'\nplanet pos: {r_all[0, 6, index0 + indexp], r_all[1, 6, index0 + indexp]}, craft pos: {r_craft[0, index], r_craft[1, index]}')
-        print(f'dist. diff: {abs(lenr - lenp)} at time {t[index] - time[index0]}')
+    l = lenr * np.sqrt(M_i[6] / (10*M_star))
+    rocket = AnnotationBbox(image_box_rocket, (r_craft[0, index], r_craft[1, index]), frameon=False)
+    planet_1 = AnnotationBbox(image_box_planet_1, (r_all[0, 0, index0 + indexp], r_all[1, 0, index0 + indexp]), frameon=False)
+    planet_2 = AnnotationBbox(image_box_planet_2, (r_all[0, 1, index0 + indexp], r_all[1, 1, index0 + indexp]), frameon=False)
+    planet_3 = AnnotationBbox(image_box_planet_3, (r_all[0, 6, index0 + indexp], r_all[1, 6, index0 + indexp]), frameon=False)
+    ax.add_artist(rocket)
+    ax.add_artist(planet_1)
+    ax.add_artist(planet_2)
+    ax.add_artist(planet_3)
+    if diff_norm <= 1e-2 + planet6_radius:        # 6.7e-5 AU er ca. 10 000km
+        print(f'\ndistance for orbital maneuver: {l}')
+        print(f'planet pos: {r_all[0, 6, index0 + indexp], r_all[1, 6, index0 + indexp]}, craft pos: {r_craft[0, index], r_craft[1, index]}')
+        print(f'planet vel: {v_all[0, 6, index0 + indexp], v_all[1, 6, index0 + indexp]}, craft pos: {v_craft[0, index], v_craft[1, index]}')
+        print(f'dist. diff: {diff_norm} at time {t[index] - time[index0]} after launch, time {t[index]} in total.')
         print(f'index, indexp: {index}, {indexp}')
+        print(f'Orbital maneuver possible: {diff_norm <= l}')
     if lenr <= 1:
         print(f'{lenr} from the star')
 
-    return p0, p1, p6, craft, timelabel
+    return p0, p1, p6, craft, timelabel, planet_1, planet_2, planet_3, rocket
 
 ani = FuncAnimation(fig, update, frames=range(0, len(time)), interval=1, blit=True)
 plt.show()
+dist = np.zeros((len(r_craft[0,:]), 1))
+for index in range(len(r_craft[0,:])):
+    indexp = int(index_ratio*index)
+    dist[index] = np.linalg.norm(r_craft[:, index] - r_all[:, 6, index0 + indexp])
+
+print(np.min(dist))
+index = np.where(dist==np.min(dist))[0][0]
+print(index)
+lenr = np.sqrt(r_craft[0, index]**2 + r_craft[1, index]**2)
+l = lenr * np.sqrt(M_i[6] / (10*M_star))
+print(f'Maneuver possible: {np.min(dist) <= l}')
