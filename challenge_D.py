@@ -40,36 +40,55 @@ shortcut.place_spacecraft_in_stable_orbit(2, 1000e3, 0, 6)
 # Initializing landing sequence class instance
 landing = mission.begin_landing_sequence()
 
-# Calling landing sequece oreint function
+
+
+def get_info_orbit(t, pos, vel):
+    print('\n\n')
+    r = np.linalg.norm(pos)
+    v = np.linalg.norm(vel)
+    print(f't = {t}s eller {t / (60*60)}hr')
+    print(f'r = {r}m')
+    print(f'v = {v}m/s')
+    # Regner ut radiell og tangentiell komponent etter vi er kommet i bane:
+    # Merk, M >> m, så derfor er noen (m + M) = M og M*m / (M + m) = m
+    vr = (pos[0]*vel[0] + pos[1]*vel[1]) / r
+    vt = np.sqrt(v**2 - vr**2)
+    print(f'v_r = {vr}m/s, v_t = {vt}m/s')
+
+    M = system.masses[6] * const.m_sun
+    m = mission.spacecraft_mass
+    G = const.G
+    print(f'Planet mass: {M}kg, spacecraft mass: {m}kg')
+
+    Etot = 0.5*m*v**2 - G*m*M / r
+    print(f'Total energy = {Etot}J')
+
+    a = G*M*m / (2*abs(Etot))
+    print(f'Major axis: {a}m')
+
+    P = np.sqrt(4*np.pi**2*a**3 / (G*M))
+    print(f'Orbital period: {P}s or {P / (60*60)}hr')
+
+    b = r*vt * np.sqrt(a/(G*M))
+    print(f'Semimajor axis:{b}m')
+
+    e = np.sqrt(1 - (b/a)**2)
+    print(f'Eccentricity: {e}')
+
+    rA = a*(1 + e)
+    rP = a*(1 - e)
+    print(f'Apoapsis: {rA}m, Periapsis: {rP}m')
+    info_array = np.array([r, vr, vt, a, b, e, P, rA, rP])
+    print('\n\n')
+    return info_array
+
+# Calling landing sequece orient function
 t, pos, vel = landing.orient()
+info_1 = get_info_orbit(t, pos, vel)
 
-print('')
-# Regner ut radiell og tangentiell komponent etter vi er kommet i bane:
-# Merk, M >> m, så derfor er noen (m + M) = M og M*m / (M + m) = m
-vr = (pos[0]*vel[0] + pos[1]*vel[1]) / np.linalg.norm(pos)
-vt = np.sqrt(np.linalg.norm(vel)**2 - vr**2)
-print(f'v_r = {vr}m/s, v_t = {vt}m/s')
+landing.fall(9170 * 5)
+t, pos, vel = landing.orient()
+info_2 = get_info_orbit(t, pos, vel)
 
-M = system.masses[6] * const.m_sun
-m = mission.spacecraft_mass
-G = const.G
-print(f'Planet mass: {M}kg, spacecraft mass: {m}kg')
-
-Etot = 0.5*m*np.linalg.norm(vel)**2 - G*m*M / np.linalg.norm(pos)
-print(f'Total energy = {Etot}J')
-
-a = G*M*m / (2*abs(Etot))
-print(f'Major axis: {a}m')
-
-P = np.sqrt(4*np.pi**2*a**3 / (G*M))
-print(f'Orbital period: {P}s or {P / (60*60)}hr')
-
-b = np.linalg.norm(pos)*vt * np.sqrt(a/(G*M))
-print(f'Semimajor axis:{b}m')
-
-e = np.sqrt(1 - (b/a)**2)
-print(f'Eccentricity: {e}')
-
-rA = a*(1 + e)
-rP = a*(1 - e)
-print(f'Apoapsis: {rA}m, Periapsis: {rP}m')
+rel_error = abs(info_2 - info_1) / info_2
+print(rel_error)
